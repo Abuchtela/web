@@ -158,6 +158,7 @@ INSTALLED_APPS = [
     'passport',
     'quadraticlands',
     'mautic_logging',
+    'passport_score',
 ]
 
 MIDDLEWARE = [
@@ -541,6 +542,7 @@ CELERY_ROUTES = [
     ('dashboard.tasks.calculate_trust_bonus', {'queue': 'gitcoin_passport'}),
     ('grants.tasks.process_grant_contribution', {'queue': 'high_priority'}),
     ('grants.tasks.batch_process_grant_contributions', {'queue': 'high_priority'}),
+    ('grants.tasks.handle_zksync_ingestion_task', {'queue': 'high_priority'}),
     ('kudos.tasks.mint_token_request', {'queue': 'high_priority'}),
     ('dashboard.tasks.increment_view_count', {'queue': 'analytics'}),
     ('dashboard.tasks.record_visit', {'queue': 'analytics'}),
@@ -823,6 +825,7 @@ GITHUB_EVENT_HOOK_URL = env('GITHUB_EVENT_HOOK_URL', default='github/payload/')
 WEB3_HTTP_PROVIDER = env('WEB3_HTTP_PROVIDER', default='https://rinkeby.infura.io')
 INFURA_USE_V3 = env.bool('INFURA_USE_V3', False)
 INFURA_V3_PROJECT_ID = env('INFURA_V3_PROJECT_ID', default='1e0a90928efe4bb78bb1eeceb8aacc27')
+ALCHEMY_KEY = env('ALCHEMY_KEY', default='1e0a90928efe4bb78bb1eeceb8aacc27')
 
 # COLO Coin
 COLO_ACCOUNT_ADDRESS = env('COLO_ACCOUNT_ADDRESS', default='')  # TODO

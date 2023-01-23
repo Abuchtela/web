@@ -29,7 +29,6 @@ WORKDIR /usr/src
 RUN apt-get update && apt-get install -y wget
 RUN wget "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
 RUN apt-get install -y $CHROME_DEPS
-RUN dpkg -i google-chrome-stable_current_amd64.deb
 
 # Install cypress dependencies
 RUN apt-get install -y $CYPRESS_DEPS
@@ -71,7 +70,7 @@ RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources
 RUN apt-get update
 RUN apt-get install -y yarn
 RUN yarn global add n
-RUN n stable
+RUN n 14.20.1
 
 COPY package.json /code/
 RUN cd /code && yarn install

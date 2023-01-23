@@ -180,6 +180,11 @@
   border-radius: 50%;
 }
 
+.trust-bonus-message {
+  background-color: #F3587D;
+  color: #0E0333;
+}
+
 @media (max-width: 1200px) {
   .profile-header{
     min-height: 350px;
@@ -238,7 +243,7 @@
 }
 
 .profile-header__stats .card-header {
-  padding: 0.1rem 0.7rem;
+  padding: 0.1rem;
   color: #666;
   border-radius: 0;
   border-bottom: none;
@@ -248,10 +253,6 @@
 .profile-header__stats .card-header b {
   color: #000;
   font-size: 1.7rem;
-}
-
-.profile-header__stats .card-body {
-  padding: 0.7rem;
 }
 
 
@@ -270,7 +271,6 @@
 @media (min-width: 992px) and (max-width: 1199.98px) {
 
   .profile-header__stats .card-header {
-    padding: 0 0.5rem;
     font-size: 1.2rem;
   }
 
@@ -282,7 +282,7 @@
 
 .profile-header__stats ul {
   list-style-type: none;
-  padding: 0;
+  padding-left: 0.5rem;
   margin: 0;
 }
 
@@ -609,4 +609,75 @@ nav.navbar.navbar-dark{
 
 .ql-align-justify {
   text-align: justify;
+}
+
+.status {
+  width: 32px;
+  height: 32px;
+  border: solid 1px $gc-grey-400;
+  border-radius: 50%;
+  &.complete {
+    background: #059669;
+    border: none;
+  }
+  
+  &.loading {
+    border: solid 1px $gc-violet-500;
+  }
+
+  .fa-check {
+    color: white;
+    margin-top: 10px;
+    margin-left: 9px;
+  }
+
+  div {
+    background: $gc-violet-500;
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    margin-top: 10px;
+    margin-left: 10px;
+  }
+}
+
+.vl {
+  height: 27px;
+  width: 1px;
+  border: solid 1px #D9D9D9;
+  &.complete {
+    border: solid 1px #059669;
+  }
+}
+
+.currentScore.saved {
+  color: #059669;
+}
+
+.progress-bar.bg-secondary {
+  background-color: #059669 !important;
+}
+
+.trustBonusBg {
+  background: url(static('wallpapers/confetti.svg')) no-repeat center center fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+.refresh-button {
+  background: $gc-grey-500;
+}
+
+.providers {
+  margin: 15px 0;
+  img {
+    height: 32px;
+    margin-right: 10px;
+  }
+  p {
+    margin-bottom: 0px;
+    margin-top: 5px;
+  }
 }

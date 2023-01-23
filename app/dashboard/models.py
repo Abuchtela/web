@@ -63,6 +63,7 @@ from economy.utils import ConversionRateNotFoundError, convert_amount, convert_t
 from git.utils import get_issue_comments, get_issue_details, issue_number, org_name, repo_name
 from marketing.mails import fund_request_email, start_work_approved
 from marketing.models import EmailSupressionList, LeaderboardRank
+from passport_score.models import GR15TrustScore
 from rest_framework import serializers
 from townsquare.models import PinnedPost
 from unidecode import unidecode
@@ -3188,7 +3189,11 @@ class Profile(SuperModel):
 
     @property
     def final_trust_bonus(self):
-        return self.trust_bonus if self.passport_trust_bonus is None else self.passport_trust_bonus
+        try:
+            return GR15TrustScore.objects.get(user_id=self.user_id).trust_bonus
+        except:
+            pass
+        return 0.5
 
     @property
     def shadowbanned(self):

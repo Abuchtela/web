@@ -150,7 +150,7 @@ If you
 * have some work on your Github Issues board that you don't have time (or skills) to do.
 * are dependant upon an upstream repo for something, and you'd like to incentivize them to work on it.
 
-try posting a funded issue at [https://gitcoin.co/new](https://gitcoin.co/new).
+try posting a funded issue at [https://gitcoin.co/bounty/new](https://gitcoin.co/bounty/new).
 
 # Integrating Gitcoin
 
@@ -169,7 +169,7 @@ Advanced
 Background
 
 * [Everything you need to know about Gitcoin](https://medium.com/gitcoin/everything-you-need-to-know-about-gitcoin-fe2e3e292a21)
-* [Our Vision: Open Source Money will BUIDL the OSS Ecosystem](https://gitcoin.co/blog/open-source-money-will-buidl-the-open-source-ecosystem/)
+* [Our Vision: Open Source Money will BUIDL the OSS Ecosystem](https://go.gitcoin.co/blog/open-source-money-will-buidl-the-open-source-ecosystem/)
 
 Testimonials & Case Studies
 

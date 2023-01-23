@@ -156,6 +156,15 @@ Vue.component('trust-bonus-passport', {
   }
 });
 
+let currentTime = new Date();
+let gr15Start = Date.parse('2022-09-07T15:00:00.000Z');
+let distance = gr15Start - currentTime;
+
+var days = Math.floor((distance % (24 * 1000 * 60 * 60 * 24)) / (24 * 1000 * 60 * 60));
+var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+let countDown = `${days} day, ${hours} ${hours > 1 ? 'hours' : 'hour'}, ${minutes} min, ${seconds} sec`;
 
 // Create the trust-bonus view
 Vue.component('active-trust-manager', {
@@ -171,7 +180,7 @@ Vue.component('active-trust-manager', {
       passportVerified: document.is_passport_connected && (document.trust_bonus_status ? document.trust_bonus_status.indexOf('Error:') === -1 : false),
       passportUrl: 'https://passport.gitcoin.co/',
       rawPassport: undefined,
-      trustBonus: (document.trust_bonus * 100) || 50,
+      trustBonus: ((document.trust_bonus * 100) || 50).toFixed(1),
       trustBonusStatus: document.trust_bonus_status,
       isTrustBonusRefreshInProgress: false,
       isCeramicConnected: true,
@@ -182,11 +191,20 @@ Vue.component('active-trust-manager', {
       roundStartDate: parseMonthDay(document.round_start_date),
       roundEndDate: parseMonthDay(document.round_end_date),
       services: document.services || [],
+      clrRound: document.clr_round,
       modalShow: false,
       modalName: false,
       pyVerificationError: false,
       passportDetailsShow: false,
       confirmUnlinkPassportShow: false,
+      noPassportShow: false,
+      passportScoringShow: false,
+      myStampsShow: false,
+      passportStamps: [],
+      apuScoreStatus: null, // null, saving, submitting, scoring, complete
+      isSubmissionEnabled: currentTime > gr15Start,
+      isStaff: document.contxt.is_staff,
+      countDown: countDown,
       stampVerifications: document.passport_trust_bonus_stamp_validation,
       passportDid: document.passport_did,
       unlinkSuccessMsg: false,
@@ -206,15 +224,14 @@ Vue.component('active-trust-manager', {
     this.visitGitcoinPassport = `</br>Visit <a target="_blank" rel="noopener noreferrer" href="${this.passportUrl}" class="link cursor-pointer">Gitcoin Passport</a> to create your Passport and get started.`;
 
     // on account change/connect etc... (get Passport state for wallet -- if verified, ensure that the passport connect button has been clicked first)
-    document.addEventListener('dataWalletReady', () => ((!this.pyVerificationError && !this.passportVerified) || this.loading) && this.connectPassport(true));
+    document.addEventListener('dataWalletReady', () => (!this.pyVerificationError && this.loading) && this.checkForPassport());
 
     // on wallet disconnect (clear Passport state)
     document.addEventListener('walletDisconnect', () => (!this.passportVerified ? this.reset(true) : false));
 
+    this.refreshTrustBonus();
     // start watching for trust bonus status updates, in case the calculation is still pending
-    if (this.trustBonusStatus === 'pending_celery') {
-      this.refreshTrustBonus();
-    } else if (this.pyVerificationError) {
+    if (this.pyVerificationError) {
       // clear all state
       this.reset(true);
       this.verificationError = this.trustBonusStatus;
@@ -231,6 +248,22 @@ Vue.component('active-trust-manager', {
 
         return services;
       }, {});
+    },
+    loadingStates: function() {
+      return {
+        submitting: {
+          loading: this.apuScoreStatus === 'submitting',
+          complete: this.apuScoreStatus === 'scoring' | this.apuScoreStatus === 'saving' | this.apuScoreStatus === 'complete'
+        },
+        scoring: {
+          loading: this.apuScoreStatus === 'scoring',
+          complete: this.apuScoreStatus === 'saving' | this.apuScoreStatus === 'complete'
+        },
+        saving: {
+          loading: this.apuScoreStatus === 'saving',
+          complete: this.apuScoreStatus === 'complete'
+        }
+      };
     }
   },
   methods: {
@@ -281,27 +314,6 @@ Vue.component('active-trust-manager', {
       // check again in x number of seconds
       setTimeout(this.checkCeramicConnection, this.healthCheckTimeout);
     },
-    async passportActionHandlerConnect(forceRefresh) {
-      window.DD_LOGS && DD_LOGS.logger.info(`handle '${document.contxt.github_handle}' - action connect`);
-
-      // We can call the same handler to step through each operation...
-      // connect and read the passport...
-      await this.connectPassport();
-      // when forceRefreshing we want to go straight to scoring
-      if (forceRefresh) {
-        // move to step 2 to immediately score the passport
-        await this.passportActionHandlerRefresh();
-      }
-    },
-    async passportActionHandlerRefresh() {
-      window.DD_LOGS && DD_LOGS.logger.info(`handle '${document.contxt.github_handle}' - action refresh`);
-      await this.verifyPassport().then(() => {
-        // move to step 3 (saving)
-        this.step = 3;
-        // store passport into state after verifying content to avoid displaying the scoring until ready
-        this.passport = this.rawPassport;
-      });
-    },
     async passportActionHandlerSave() {
       window.DD_LOGS && DD_LOGS.logger.info(`handle '${document.contxt.github_handle}' - action save`);
       await this.savePassport();
@@ -326,13 +338,17 @@ Vue.component('active-trust-manager', {
           this.pyVerificationError = this.trustBonusStatus.indexOf('Error:') !== -1;
 
           if (response.passport_trust_bonus_status === 'pending_celery') {
+            this.apuScoreStatus = 'scoring';
             _refreshTrustBonus();
           } else if (response.passport_trust_bonus_status === 'saved') {
-            this.trustBonus = (parseFloat(response.passport_trust_bonus) * 100) || 50;
+            this.trustBonus = ((parseFloat(response.passport_trust_bonus) * 100) || 50).toFixed(1);
+            this.passportStamps = response.passport_stamps;
             this.isTrustBonusRefreshInProgress = false;
             this.saveSuccessMsg = false;
             this.stampVerifications = response.passport_trust_bonus_stamp_validation;
             this.passportDid = response.passport_did;
+
+            this.apuScoreSaved();
           } else {
             this.isTrustBonusRefreshInProggress = false;
             this.saveSuccessMsg = false;
@@ -362,88 +378,16 @@ Vue.component('active-trust-manager', {
         _refreshTrustBonus();
       }
     },
-    /*
-     * The ignoreErrors attribute is intended to be used when calling this function automatically on page
-     * load and not expecting this to trigger an error.
-     */
-    async connectPassport(ignoreErrors) {
-      DD_LOGS.logger.info(`Connecting passport for ${document.contxt.github_handle}`);
-
-      // enter loading state
-      this.loading = true;
-      // clear error state
-      this.verificationError = false;
-      this.saveSuccessMsg = false;
-
-      // clear all state
-      this.reset(true);
-
-      // ensure selected account is known
-      if (!selectedAccount) {
-        if (!web3Modal) {
-          // set-up call to onConnect on walletReady events
-          const ret = await needWalletConnection();
-
-          // will setup wallet and emit walletReady event
-          let ret1 = await initWallet();
-
-          window.DD_LOGS && DD_LOGS.logger.info(`Connecting passport for ${document.contxt.github_handle} - skip, no web3`);
-          this.loading = false;
-          return;
-        }
-
-        // call onConnect directly after first load to force web3Modal to display every time its called
-        const ret = await onConnect();
-
-        window.DD_LOGS && DD_LOGS.logger.info(`Connecting passport for ${document.contxt.github_handle} - skip, no selected account`);
-        this.loading = false;
-        return;
-      }
-
-      window.DD_LOGS && DD_LOGS.logger.info(`Connecting passport for handle ${document.contxt.github_handle} and address ${selectedAccount}`);
-
-      try {
-        // read the genesis from the selectedAccount (pulls the associated stream index)
-        const genesis = await this.reader.getGenesis(selectedAccount);
-
-        // grab all the streams at once to reduce the required number of reqs
-        const streams = genesis && genesis.streams;
-
-        // if loaded then the user has a ceramicAccount
-        if (streams && Object.keys(streams).length > 0) {
-          // reset py error
-          this.pyVerificationError = false;
-
-          // get the selectedAccounts ceramic DID
-          this.did = genesis.did;
-
-          // read passport from reader each refresh to ensure we catch any newly created streams/updated stamps
-          const passport = await this.reader.getPassport(selectedAccount, streams);
-
-          // if we find a passport verify it and create a trust_bonus score
-          if (passport) {
-            // move to step 2
-            this.step = 2;
-            // store the passport so that we can verify its content in step-2 (before saving to this.passport)
-            this.rawPassport = passport;
-          } else {
-            // error if no passport found
-            window.DD_LOGS && DD_LOGS.logger.info(`There is no Passport associated with this wallet, did: ${this.did}`);
-            this.verificationError = ignoreErrors ? false : `There is no Passport associated with this wallet. ${this.visitGitcoinPassport}`;
-          }
-        } else {
-          // error if no ceramic account found
-          window.DD_LOGS && DD_LOGS.logger.info(`There is no Ceramic Account associated with this wallet, address: ${selectedAccount}`);
-          this.verificationError = ignoreErrors ? false : `There is no Ceramic Account associated with this wallet. ${this.visitGitcoinPassport}`;
-        }
-      } catch (error) {
-        window.DD_LOGS && DD_LOGS.logger.error(`Error when connecting passport, account: '${selectedAccount}'. Error: ${error}`);
-      } finally {
-        // done with loading state
-        this.loading = false;
-      }
-
-      window.DD_LOGS && DD_LOGS.logger.info(`DONE - Connecting passport for ${selectedAccount}`);
+    apuScoreSaved() {
+      this.apuScoreStatus = 'saving';
+      setTimeout(() => {
+        this.apuScoreStatus = 'complete',
+        this.passportScoringShow = false;
+      }, 800);
+    },
+    lintToPassport() {
+      this.noPassportShow = false;
+      window.open('https://passport.gitcoin.co/#/', '_blank');
     },
     async verifyPassport() {
       // pull the raw passport...
@@ -498,9 +442,10 @@ Vue.component('active-trust-manager', {
           }));
 
           // set the new trustBonus score
-          this.trustBonus = Math.min(150, this.services.reduce((total, service) => {
-            return (service.is_verified ? service.match_percent : 0) + total;
-          }, 50));
+          // TODO: this is not needed in GR15 ...
+          // this.trustBonus = Math.min(150, this.services.reduce((total, service) => {
+          //   return (service.is_verified ? service.match_percent : 0) + total;
+          // }, 50));
 
         } catch (error) {
           console.error('Error checking passport: ', error);
@@ -565,6 +510,7 @@ Vue.component('active-trust-manager', {
             // _alert('Your Passport\'s Trust Bonus has been saved!', 'success', 6000);
             this.saveSuccessMsg = 'Your Passport has been submitted.';
             this.trustBonusStatus = 'pending_celery';
+            this.apuScoreStatus = 'submitted';
             this.refreshTrustBonus();
           }
         }
@@ -578,6 +524,50 @@ Vue.component('active-trust-manager', {
 
       // stop loading
       this.loading = false;
+    },
+    async checkForPassport() {
+      this.loading = true;
+      // ensure selected account is known
+      console.log({ selectedAccount, web3Modal });
+      if (!selectedAccount) {
+        if (!web3Modal) {
+          // set-up call to onConnect on walletReady events
+          const ret = await needWalletConnection();
+
+          // will setup wallet and emit walletReady event
+          let ret1 = await initWallet();
+
+          window.DD_LOGS && DD_LOGS.logger.info(`Connecting passport for ${document.contxt.github_handle} - skip, no web3`);
+          this.loading = false;
+          return;
+        }
+
+        // call onConnect directly after first load to force web3Modal to display every time its called
+        const ret = await onConnect();
+
+        window.DD_LOGS && DD_LOGS.logger.info(`Connecting passport for ${document.contxt.github_handle} - skip, no selected account`);
+        this.loading = false;
+        return;
+      }
+      try {
+        const genesis = await this.reader.getGenesis(selectedAccount);
+        const streams = genesis && genesis.streams;
+
+        // if streams account has pa
+        if (streams && Object.keys(streams).length > 0) {
+          // Show passport indication modal
+          this.passportScoringShow = true;
+          this.apuScoreStatus = 'submitting';
+          this.did = genesis.did;
+          await this.savePassport();
+          this.apuScoreStatus = 'scoring';
+        } else {
+          this.noPassportShow = true;
+        }
+      } catch (e) {
+        // Error state in design??
+        this.passportScoringShow = false;
+      }
     },
     async showConfirmUnlinkPassport() {
       this.confirmUnlinkPassportShow = true;

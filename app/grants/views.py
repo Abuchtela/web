@@ -85,6 +85,7 @@ from grants.utils import (
 )
 from marketing.mails import grant_cancellation, new_grant_flag_admin
 from marketing.models import ImageDropZone, Keyword, Stat
+from passport_score.models import GR15TrustScore
 from perftools.models import JSONStore, StaticJsonEnv
 from PIL import Image
 from ratelimit.decorators import ratelimit
@@ -938,6 +939,16 @@ def grants_landing(request):
     except:
         twitterUnfurlURL = request.build_absolute_uri(static('v2/images/twitter_cards/GenericTwitterUnfurl.png'))
 
+    if request.user.is_authenticated and request.user.profile:
+        try:
+            gr15_trust_bonus = GR15TrustScore.objects.get(user_id=request.user.id)
+            gr15_trust_bonus_score = gr15_trust_bonus.trust_bonus
+        except:
+            gr15_trust_bonus_score = 0.5
+    else:
+        gr15_trust_bonus_score = 0.5
+    
+    gr15_trust_bonus_score = round(gr15_trust_bonus_score, 1) * 100
 
     params = dict(
         {
@@ -958,8 +969,7 @@ def grants_landing(request):
             'active_ecosystem_rounds': active_ecosystem_rounds,
             'featured': True,
             'now': now,
-            'trust_bonus': round(
-                request.user.profile.final_trust_bonus * 100) if request.user.is_authenticated and request.user.profile else 0
+            'trust_bonus': gr15_trust_bonus_score
         },
         **clr_rounds_metadata
     )
@@ -3347,7 +3357,14 @@ class GrantSubmissionView(View):
         for tag_id in tag_ids:
             try:
                 tag = GrantTag.objects.get(pk=tag_id)
-                grant.tags.add(tag)
+                grant.tags_requested.add(tag)
+            except Exception as e:
+                pass
+
+        if eth_payout_address and eth_payout_address != '0x0':
+            try:
+                tag = GrantTag.objects.get(name="* Main Round")
+                grant.tags_requested.add(tag)
             except Exception as e:
                 pass
 
@@ -3394,7 +3411,7 @@ class GrantSubmissionView(View):
             'trusted_relayer': settings.GRANTS_OWNER_ACCOUNT,
             'grant_tags': grant_tags
         }
-        return TemplateResponse(request, 'grants/_new.html', params)
+        return TemplateResponse(request, 'grants/_new-sunset-cgrants.html', params)
 
 
 @csrf_exempt

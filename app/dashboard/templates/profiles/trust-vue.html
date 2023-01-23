@@ -30,6 +30,111 @@
           </div>
         </b-modal>
 
+        <b-modal v-model="noPassportShow" cancel-variant="light" hide-header>
+          <div class="d-flex">
+            <div class="pr-2">
+              <div class="p-2 border rounded-circle">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 9.00001V11M12 15H12.01M20.6179 5.98434C20.4132 5.99472 20.2072 5.99997 20 5.99997C16.9265 5.99997 14.123 4.84453 11.9999 2.94434C9.87691 4.84446 7.07339 5.99985 4 5.99985C3.79277 5.99985 3.58678 5.9946 3.38213 5.98422C3.1327 6.94783 3 7.95842 3 9.00001C3 14.5915 6.82432 19.2898 12 20.622C17.1757 19.2898 21 14.5915 21 9.00001C21 7.95847 20.8673 6.94791 20.6179 5.98434Z" stroke="#664AEC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <p class="font-bold">No Passport Found</p>
+              <p class="my-2 text-muted">Make sure you select an account that is associated with a Gitcoin Passport or create a new one.</p>
+             </div>
+          </div>
+          <template v-slot:modal-footer>
+            <b-button variant="outline" class="btn btn-lg btn-outline-gc-grey" @click="noPassportShow = false">Cancel</b-button>
+            <b-button variant="primary" class="col-12 col-md-auto btn btn-lg flex-shrink-0 btn-primary" @click.prevent="lintToPassport();">Create Passport</b-button>
+          </template>
+        </b-modal>
+
+        <b-modal v-model="myStampsShow" hide-header hide-footer>
+          <div class="d-flex justify-content-center">
+            <div class="pr-2">
+              <div class="p-2 border rounded-circle">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1.58579 1.58579C1.21071 1.96086 1 2.46957 1 3V5C1 5.53043 1.21071 6.03914 1.58579 6.41421C1.96086 6.78929 2.46957 7 3 7H5C5.53043 7 6.03914 6.78929 6.41421 6.41421C6.78929 6.03914 7 5.53043 7 5V3C7 2.46957 6.78929 1.96086 6.41421 1.58579C6.03914 1.21071 5.53043 1 5 1H3C2.46957 1 1.96086 1.21071 1.58579 1.58579Z" stroke="#664AEC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M11.5858 1.58579C11.2107 1.96086 11 2.46957 11 3V5C11 5.53043 11.2107 6.03914 11.5858 6.41421C11.9609 6.78929 12.4696 7 13 7H15C15.5304 7 16.0391 6.78929 16.4142 6.41421C16.7893 6.03914 17 5.53043 17 5V3C17 2.46957 16.7893 1.96086 16.4142 1.58579C16.0391 1.21071 15.5304 1 15 1H13C12.4696 1 11.9609 1.21071 11.5858 1.58579Z" stroke="#664AEC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M1.58579 11.5858C1.21071 11.9609 1 12.4696 1 13V15C1 15.5304 1.21071 16.0391 1.58579 16.4142C1.96086 16.7893 2.46957 17 3 17H5C5.53043 17 6.03914 16.7893 6.41421 16.4142C6.78929 16.0391 7 15.5304 7 15V13C7 12.4696 6.78929 11.9609 6.41421 11.5858C6.03914 11.2107 5.53043 11 5 11H3C2.46957 11 1.96086 11.2107 1.58579 11.5858Z" stroke="#664AEC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M11.5858 11.5858C11.2107 11.9609 11 12.4696 11 13V15C11 15.5304 11.2107 16.0391 11.5858 16.4142C11.9609 16.7893 12.4696 17 13 17H15C15.5304 17 16.0391 16.7893 16.4142 16.4142C16.7893 16.0391 17 15.5304 17 15V13C17 12.4696 16.7893 11.9609 16.4142 11.5858C16.0391 11.2107 15.5304 11 15 11H13C12.4696 11 11.9609 11.2107 11.5858 11.5858Z" stroke="#664AEC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex flex-column justify-content-center text-center">
+            <p class="font-weight-bold m-2">Passport Details</p>
+            <p class="text-grey-400 m-2">This is an overview of the Stamps/Data associated with your Gitcoin Passport.</p>
+          </div>
+          <div class="d-flex flex-column ">
+            <p class="text-grey-400">Stamps</p>
+            <hr class="m-0">
+            <div v-for="stamp in passportStamps">
+              <div class="d-flex justify-content-between providers">
+                <div class="d-flex">
+                  <img v-if="stamp === 'Github'" src="{% static "v2/images/stamps/GithubStampIcon.svg" %}" height="60">
+                  <img v-if="stamp === 'Facebook'" src="{% static "v2/images/stamps/FacebookStampIcon.svg" %}" height="60">
+                  <img v-if="stamp === 'Google'" src="{% static "v2/images/stamps/GoogleStampIcon.svg" %}" height="60">
+                  <img v-if="stamp === 'Twitter'" src="{% static "v2/images/stamps/TwitterStampIcon.svg" %}" height="60">
+                  <img v-if="stamp === 'Ens'" src="{% static "v2/images/stamps/EnsStampIcon.svg" %}" height="60">
+                  <img v-if="stamp === 'Poh'" src="{% static "v2/images/stamps/PohStampIcon.svg" %}" height="60">
+                  <img v-if="stamp === 'Brightid'" src="{% static "v2/images/stamps/BrightidStampIcon.svg" %}" height="60">
+                  <p class="font-weight-bold">[[stamp]]</p>
+                </div>
+                <p style="color: #059669">Verified</p>
+              </div>
+              <hr class="m-0">
+            </div>
+          </div>
+          <b-button variant="primary" class="mt-2 col-12 btn btn-lg btn-primary" @click.prevent="myStampsShow = false">Done</b-button>
+        </b-modal>
+
+        <b-modal v-model="passportScoringShow" hide-header hide-footer>
+          <div class="mt-1">
+            <h4>Processing...</h4>
+            <p class="my-2 text-muted">Please hold while we connect to your Gitcoin Passport.</p>
+          </div>
+          <div class="d-flex mb-3" style="height: 150px;">
+            <div class="d-flex flex-column justify-content-between align-items-center h-100 mr-2">
+              <div class="status" :class="{ complete: loadingStates.submitting.complete, loading: loadingStates.submitting.loading }">
+                <div v-if="loadingStates.submitting.loading"></div>
+                <i v-if="loadingStates.submitting.complete" class="fas fa-solid fa-check" style="color: white"></i>
+              </div>
+              <div class="vl" :class="{ complete: loadingStates.submitting.complete }"></div>
+              <div class="status" :class="{ complete: loadingStates.scoring.complete, loading: loadingStates.scoring.loading }">
+                <div v-if="loadingStates.scoring.loading"></div>
+                <i v-if="loadingStates.scoring.complete" class="fas fa-solid fa-check" style="color: white"></i>
+              </div>
+              <div class="vl" :class="{ complete: loadingStates.scoring.complete }"></div>
+              <div class="status" :class="{ complete: loadingStates.saving.complete, loading: loadingStates.saving.loading }">
+                <div v-if="loadingStates.saving.loading"></div>
+                <i v-if="loadingStates.saving.complete" class="fas fa-solid fa-check" style="color: white"></i>
+              </div>
+            </div>
+            <div class="d-flex flex-column statuses h-100">
+              <div class="d-flex">
+                <div>
+                  <p class="font-weight-bold mb-0">Submitting</p>
+                  <p>The metadata is being saved in a safe place.</p>
+                </div>
+              </div>
+              <div class="d-flex">
+                <div>
+                  <p class="font-weight-bold mb-0">Scoring</p>
+                  <p>Connecting to the Mainnet blockchain.</p>
+                </div>
+              </div>
+              <div class="d-flex">
+                <div>
+                  <p class="font-weight-bold mb-0">Saving</p>
+                  <p>Just another moment while we finish things up...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </b-modal>
+
         <why-this-matters-modal
           :show-modal="modalShow && modalName === 'why-this-matters-modal'"
           @modal-dismissed="hideModal()">
@@ -39,140 +144,33 @@
           :show-modal="modalShow" :type="modalName"
           @modal-dismissed="hideModal()">
         </state-modal> -->
-
-        <div class="row spacer-mt-4">
-          <div class="col-12 col-lg-4 col-xl-6 d-flex spacer-pb-3">
-            <img class="w-100 my-auto" src={% static "v2/images/passport-landing-2.png" %} />
-          </div>
-
-          <div class="col-12 col-lg-8 col-xl-6 spacer-pb-3">
-
-            <!-- Ceramic connection status -->
-            <span class="position-absolute" style="right: 18px; top: -18px;" :title="`${isCeramicConnected ? 'Ceramic is up!' : 'Ceramic is down :('}`">
-              <span class="mr-1 d-inline-block rounded-circle" :style="`width: 10px; height: 10px; ${isCeramicConnected ? 'background: green;' : 'background: red;'}`"></span>Ceramic Network
-            </span>
-
-            <h1>Trust Bonus</h1>
-            <span class="line-height-2">
-              Trust Bonus has received an upgrade! It's now powered by Gitcoin Passport, a decentralized identity verification application. Trust Bonus scores are calculated based on the identification stamps you complete.
-              <br/>
-              <br/>
-              Note: If you already have a Trust Bonus score, saving a new one will override your existing score. Be sure to collect all your existing stamps in your new Passport before saving a new score!
-            </span>
-
-            <div>
-
-              <ul class="list-unstyled mt-4 pb-2">
-                <!-- <i class="fa-regular fa-circle-check"></i> -->
-                <li class="d-flex border-top border-bottom py-3">
-                  <div :class="`gc-border-circle ${step === 1 && !passportVerified? 'gc-border-default' : 'gc-border-success'}`">
-                    <span v-if="step === 1 && !passportVerified" class="m-auto">1</span>
-                    <i v-else :class="`fa fa-check m-auto ${step > 1 || passportVerified ? 'gc-text-success' : 'gc-text-default'}`"></i>
-                  </div>
-                  <div class="px-2">
-                    <div :class="`pb-1 ${step < 1 ? 'gc-text-disabled' : 'gc-text-default'}`">
-                      <strong>Create</strong>
-                    </div>
-                    <div :class="` ${step < 1 ? 'gc-text-disabled' : 'gc-text-default'}`">
-                      Visit <a :href="passportUrl" target="_blank" rel="noopener noreferrer" class="link cursor-pointer">Gitcoin Passport</a> to create your proof of personhood and complete stamps.
-                    </div>
-                    <div class="d-flex flex-row">
-                      <b-button v-if="step === 1 && !passportVerified" variant="primary" style="max-height: 52px;" class="col-12 col-md-auto btn btn-lg px-5 mt-3 flex-shrink-0 btn-primary" :disabled="loading" @click="() => passportActionHandlerConnect()">
-                        Connect Passport
-                      </b-button>
-                      <div v-if="pyVerificationError" class="ml-2 mt-3 py-2 border rounded button btn-lg">
-                        Validation failed
-                      </div>
-                    </div>
-                    <div v-if="step === 1 && verificationError" class="d-flex px-0 pt-3 my-auto">
-                      <i class="fa-shield-virus fas mt-1 px-1" style="color: #d03e63"></i>
-                      <div class="d-inline ml-2 my-auto">
-                        <span style="color: #d03e63"><div class="font-smaller-2" @click="handleErrorClick" v-html="verificationError"></div></span>
-                      </div>
-                    </div>
+        <div>
+          <div>
+            <div class="d-flex flex-row p-2 mb-lg-4 mx-lg-5 trust-bonus-message">
+              <div class="d-flex flex-column p-3 p-md-2">
+                <div class="order-0 d-lg-none w-50 w-md-25 mb-2 align-self-start">
+                  <img src="{% static 'v2/images/trust/no-trust-man.svg' %}" alt="Pink robot" />
                 </div>
-                </li>
-                <li class="d-flex border-bottom py-3">
-                  <div :class="`gc-border-circle ${step < 2 && !passportVerified ? 'gc-border-disabled' : step === 2 && !passportVerified ? 'gc-border-default' : 'gc-border-success'}`">
-                    <span v-if="step <= 2 && !passportVerified" :class="`m-auto ${step > 2 ? 'gc-text-success' : step < 2 ? 'gc-text-disabled' : 'gc-text-default'}`">2</span>
-                    <i v-else :class="`fa fa-check m-auto ${step > 2 || passportVerified ? 'gc-text-success' : step < 2 ? 'gc-text-disabled' : 'gc-text-default'}`"></i>
-                  </div>
-                  <div class="px-2">
-                    <div :class="`pb-1 ${(step < 2 && !passportVerified) ? 'gc-text-disabled' : 'gc-text-default'}`">
-                      <strong>Score</strong>
-                    </div>
-                    <div :class="`${(step < 2 && !passportVerified)? 'gc-text-disabled' : 'gc-text-default'}`">
-                      Return to present your stamps to Gitcoin and receive a Trust Bonus score.
-                    </div>
-                    <div class="d-flex flex-row">
-                      <b-button v-if="step === 2 && !passportVerified" variant="primary" style="max-height: 52px;" class="col-12 col-md-auto btn btn-lg px-5 mt-3 flex-shrink-0 btn-primary" :disabled="loading" @click="() => passportActionHandlerRefresh()">
-                        Score Passport
-                      </b-button>
-                      <b-button v-if="passportVerified" variant="dark" style="max-height: 52px;" class="col-12 col-md-auto btn btn-lg px-5 mt-3 flex-shrink-0 btn-dark" :disabled="loading" @click="() => passportActionHandlerConnect()">
-                        Refresh Passport
-                      </b-button>
-                      <div v-if="trustBonusStatus === 'pending_celery'" class="ml-2 mt-3 py-2 border rounded button btn-lg">
-                        <div class="spinner-border spinner-border-sm"></div>
-                        Validating Passport ...
-                      </div>
-                    </div>
-                    <div v-if="step === 2 && verificationError" class="d-flex px-0 pt-3 my-auto">
-                      <i class="fa-shield-virus fas mt-1 px-1" style="color: #d03e63"></i>
-                      <div class="d-inline ml-2 my-auto">
-                        <span style="color: #d03e63"><div class="font-smaller-2" @click="handleErrorClick" v-html="verificationError"></div></span>
-                      </div>
-                    </div>
-                  </div>
-                </li>
-                <li class="d-flex border-bottom py-3">
-                  <div :class="`gc-border-circle ${step < 3 && !passportVerified ? 'gc-border-disabled' : step === 3 && !passportVerified ? 'gc-border-default' : 'gc-border-success'}`">
-                    <span v-if="step <= 3 && !passportVerified" :class="`m-auto ${step > 3 ? 'gc-text-success' : step < 3 ? 'gc-text-disabled' : 'gc-text-default'}`">3</span>
-                    <i v-else :class="`fa fa-check m-auto ${step >= 3 || passportVerified ? 'gc-text-success' : step < 3 ? 'gc-text-disabled' : 'gc-text-default'}`"></i>
-                  </div>
-                  <div class="px-2">
-                    <div :class="`pb-1 ${step < 3 && !passportVerified ? 'gc-text-disabled' : 'gc-text-default'}`">
-                      <strong>Save</strong>
-                    </div>
-                    <div :class="`${step < 3 && !passportVerified ? 'gc-text-disabled' : 'gc-text-default'}`">
-                      Save your Trust Bonus score so it is used to calculate your matching amounts.
-                    </div>
-                    <b-button v-if="step === 3 && !passportVerified" variant="primary" style="max-height: 52px;" class="col-12 col-md-auto btn btn-lg px-5 mt-3 flex-shrink-0 btn-primary" :disabled="loading" @click="() => passportActionHandlerSave()">
-                      Save Passport
-                    </b-button>
-                    <div v-if="step === 3 && verificationError" class="d-flex px-0 pt-3 my-auto">
-                      <i class="fa-shield-virus fas mt-1 px-1" style="color: #d03e63"></i>
-                      <div class="d-inline ml-2 my-auto">
-                        <span style="color: #d03e63"><div class="font-smaller-2" @click="handleErrorClick" v-html="verificationError"></div></span>
-                      </div>
-                    </div>
-                    <div v-if="saveSuccessMsg" class="d-flex px-0 pt-3 my-auto">
-                      <i class="fa-shield-virus fas mt-1 px-1" style="color: #059669"></i>
-                      <div class="d-inline ml-2 my-auto">
-                        <span style="color: #059669"><div class="font-smaller-2" v-html="saveSuccessMsg"></div></span>
-                      </div>
-                    </div>
-                  </div>
-                </li>
-              </ul>
-            </div>
-
-            <div class="row">
-              <div class="col-12 col-lg-6">
-                <div class="spacer-mb-2 font-weight-semibold">Trust Bonus Score</div>
-                <div class="progress rounded-0" style="height: 0.4rem;">
-                  <div class="progress-bar bg-secondary disabled" role="progressbar" :style="{width: `${!passport ? 0 : 100/150 * trustBonus}%`}" :aria-valuenow="`${100/150 * trustBonus}%`" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="order-1">
+                  <h3 class="line-height-1">Goodbye Trust Bonus. Soon Grants Protocol Launch.</h3>
+                </div>
+                <div class="order-2">
+                  <p class="line-height-2 font-weight-light">You cannot create a Trust Bonus score for your Passport anymore. Trust Bonus is exclusively relevant to the legacy Grants app here, which we will not continue operating much longer. On the positive flip side, as you may know, we are in full swing, working toward launching a fully revamped version of Gitcoin Grants: the Gitcoin Grants Protocol. When we roll out the new Grants app, we'll widely communicate with you how to verify your identity in the new app. See ya in the Quadratic Lands!</p>
+                  <p>
+                      <span><i class="fas fa-exclamation-circle"></i></span><a class="text-dark-purple" href="https://gov.gitcoin.co/t/request-for-feedback-proposed-future-for-the-grant-programs-and-gr16-as-we-transition-to-the-protocol/11624/42" target="_blank"><u> Find out more here.</u></a>
+                  </p>
                 </div>
               </div>
+              <div class="d-none d-lg-block align-self-center w-75 p-lg-3 pr-5">
+                <div>
+                  <img src="{% static 'v2/images/trust/no-trust-man.svg' %}" alt="Pink robot" />
+                </div>  
+              </div>
             </div>
-            <div class="row">
-              <div :class="`col-12 spacer-mt-2 font-weight-semibold ${!passport ? 'text-grey-300' : ''}`">You'll receive [[trustBonus]]% of 150% Match. <a href="#" @click="showPassportDetails"><i class="fa fa-info-circle"></i></a></div>
-            </div>
-
           </div>
         </div>
       </div>
     </active-trust-manager>
-
 
   </div>
 
