@@ -81,7 +81,7 @@
     "select2": "4.0.11",
     "vue": "2.6.11",
     "vue-plyr": "^7.0.0",
-    "vue-select": "3.10.8",
+    "vue-select": "3.20.2",
     "vue-tel-input": "^4.4.1"
   }
 }
