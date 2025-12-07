@@ -4,7 +4,7 @@ cryptocompare==0.6
 cryptography==2.3
 celery==4.4.0
 django-celery-beat==1.1.1
-django==4.2.17
+django==4.2.27
 django-csp==3.7
 django-cors-headers==2.4.0
 django-filter==2.0.0
@@ -121,3 +121,5 @@ unidecode==1.2.0
 drf-flex-fields==0.9.1
 pandas==1.1.5
 django-svg-image-form-field==1.0.1
+sqlparse>=0.5.4 # not directly required, pinned by Snyk to avoid a vulnerability
+urllib3>=2.6.0 # not directly required, pinned by Snyk to avoid a vulnerability
