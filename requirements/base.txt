@@ -55,7 +55,7 @@ ipdb==0.13.9
 django-autotranslate==1.1.1
 svgutils==0.3.0
 watchdog==0.9.0
-Werkzeug[watchdog]==0.15.5
+Werkzeug==3.1.5
 imageio
 boto3==1.18.22
 django-storages==1.11.1
@@ -105,7 +105,7 @@ attrs==20.3.0
 oogway==0.7.0
 icalendar==4.0.7
 duniterpy==0.61.0
-aiohttp >= 3.6.3
+aiohttp>=3.13.3
 jsonschema==3.2.0
 pyPEG2==2.15.2
 base58==2.1.0
@@ -121,3 +121,4 @@ unidecode==1.2.0
 drf-flex-fields==0.9.1
 pandas==1.1.5
 django-svg-image-form-field==1.0.1
+urllib3>=2.6.3 # not directly required, pinned by Snyk to avoid a vulnerability
